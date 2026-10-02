@@ -14,27 +14,11 @@ export type GenerationRequest = {
   resolution?: string;
 };
 
-export type ProviderStatus = {
-  connected: boolean;
-  provider: string | null;
-  reason?: string;
-};
-
-export function getProviderStatus(): ProviderStatus {
-  const provider = process.env.ASTRA_AI_PROVIDER?.trim() || null;
-  const gatewayKey = process.env.AI_GATEWAY_API_KEY?.trim();
-
-  if (!provider) {
-    return { connected: false, provider: null, reason: "No AI provider selected." };
-  }
-
-  if (provider === "vercel-ai-gateway" && !gatewayKey) {
-    return { connected: false, provider, reason: "AI_GATEWAY_API_KEY is missing." };
-  }
-
+export function getProviderStatus() {
   return {
-    connected: false,
-    provider,
-    reason: "Provider adapter exists as an architectural slot but generation is not enabled yet."
+    provider: "vercel-ai-gateway",
+    model: "klingai/kling-v3.0-t2v",
+    authentication: process.env.AI_GATEWAY_API_KEY ? "api-key" : "vercel-oidc",
+    configured: Boolean(process.env.AI_GATEWAY_API_KEY || process.env.VERCEL),
   };
 }
