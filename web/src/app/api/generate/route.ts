@@ -1,4 +1,5 @@
 import { gateway } from "@ai-sdk/gateway";
+import { experimental_startVideo } from "ai";
 import type { GenerationRequest } from "@/lib/ai/provider";
 
 export const runtime = "nodejs";
@@ -25,8 +26,8 @@ export async function POST(request: Request) {
   const aspectRatio = allowedRatios.has(body.aspectRatio || "") ? body.aspectRatio! : "16:9";
 
   try {
-    const model = gateway.videoModel(MODEL_ID);
-    const started = await model.doStart({
+    const result = await experimental_startVideo({
+      model: gateway.videoModel(MODEL_ID),
       prompt: body.prompt.trim().slice(0, 2500),
       duration,
       aspectRatio,
@@ -42,8 +43,8 @@ export async function POST(request: Request) {
       ok: true,
       status: "queued",
       model: MODEL_ID,
-      operation: started.operation,
-      warnings: started.warnings ?? [],
+      operation: result.operation,
+      warnings: result.warnings ?? [],
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to start Kling generation.";
