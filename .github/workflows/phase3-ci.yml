@@ -36,6 +36,7 @@ jobs:
         run: |
           cd mobile
           flutter create . --platforms=android,ios --project-name astravideo
+          rm -f test/widget_test.dart
       - name: Install Flutter dependencies
         run: |
           cd mobile
