@@ -24,7 +24,7 @@ jobs:
           cd backend
           python -c "from app.main import app; print(app.title)"
 
-  flutter:
+  android:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -32,7 +32,7 @@ jobs:
         with:
           channel: stable
           cache: true
-      - name: Generate platform scaffolding
+      - name: Generate Android/iOS scaffolding
         run: |
           cd mobile
           flutter create . --platforms=android,ios --project-name astravideo
@@ -57,8 +57,44 @@ jobs:
         run: |
           cd mobile
           flutter build apk --release --dart-define=ENABLE_FIREBASE=false
-      - name: Upload release APK artifact
+      - name: Upload Android release APK
         uses: actions/upload-artifact@v4
         with:
-          name: AstraVideo-Release-APK
+          name: AstraVideo-Android-Release
           path: mobile/build/app/outputs/flutter-apk/app-release.apk
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Enable Windows desktop
+        shell: pwsh
+        run: |
+          flutter config --enable-windows-desktop
+          cd mobile
+          flutter create . --platforms=windows --project-name astravideo
+          Remove-Item test\widget_test.dart -ErrorAction SilentlyContinue
+      - name: Install Flutter dependencies
+        shell: pwsh
+        run: |
+          cd mobile
+          flutter pub get
+      - name: Analyze Flutter
+        shell: pwsh
+        run: |
+          cd mobile
+          flutter analyze
+      - name: Build Windows release
+        shell: pwsh
+        run: |
+          cd mobile
+          flutter build windows --release --dart-define=ENABLE_FIREBASE=false
+      - name: Upload Windows app
+        uses: actions/upload-artifact@v4
+        with:
+          name: AstraVideo-Windows-Release
+          path: mobile/build/windows/x64/runner/Release/**
