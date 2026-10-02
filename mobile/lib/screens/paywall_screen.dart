@@ -24,10 +24,38 @@ class _PaywallScreenState extends State<PaywallScreen> {
   Future<void> load() async {
     try {
       offerings = await PurchasesService.offerings();
-    } catch (e) {
+    } catch (_) {
       message = 'RevenueCat non ancora configurato';
     } finally {
       if (mounted) setState(() => loading = false);
+    }
+  }
+
+  Future<void> _buy(Package package) async {
+    try {
+      await PurchasesService.buy(package);
+      if (!mounted) return;
+      Navigator.of(context).pop(true);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$e')),
+      );
+    }
+  }
+
+  Future<void> _restore() async {
+    try {
+      await PurchasesService.restore();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Acquisti ripristinati')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$e')),
+      );
     }
   }
 
@@ -41,42 +69,42 @@ class _PaywallScreenState extends State<PaywallScreen> {
         children: [
           const Icon(Icons.workspace_premium, size: 64),
           const SizedBox(height: 16),
-          const Text('Sblocca AstraVideo Pro', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+          const Text(
+            'Sblocca AstraVideo Pro',
+            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 12),
-          const Text('1080p • niente watermark • più crediti • nessuna pubblicità • coda prioritaria'),
+          const Text(
+            '1080p • niente watermark • più crediti • nessuna pubblicità • coda prioritaria',
+          ),
           const SizedBox(height: 24),
           if (loading)
             const Center(child: CircularProgressIndicator())
           else if (packages.isEmpty)
-            Card(child: Padding(padding: const EdgeInsets.all(16), child: Text(message ?? 'Configura RevenueCat per caricare i piani reali.')))
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  message ?? 'Configura RevenueCat per caricare i piani reali.',
+                ),
+              ),
+            )
           else
-            ...packages.map((package) => Card(
-                  child: ListTile(
-                    title: Text(package.storeProduct.title),
-                    subtitle: Text(package.storeProduct.description),
-                    trailing: FilledButton(
-                      onPressed: () async {
-                        try {
-                          await PurchasesService.buy(package);
-                          if (mounted) Navigator.pop(context, true);
-                        } catch (e) {
-                          if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
-                        }
-                      },
-                      child: Text(package.storeProduct.priceString),
-                    ),
+            ...packages.map(
+              (package) => Card(
+                child: ListTile(
+                  title: Text(package.storeProduct.title),
+                  subtitle: Text(package.storeProduct.description),
+                  trailing: FilledButton(
+                    onPressed: () => _buy(package),
+                    child: Text(package.storeProduct.priceString),
                   ),
-                )),
+                ),
+              ),
+            ),
           const SizedBox(height: 16),
           TextButton(
-            onPressed: () async {
-              try {
-                await PurchasesService.restore();
-                if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Acquisti ripristinati')));
-              } catch (e) {
-                if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
-              }
-            },
+            onPressed: _restore,
             child: const Text('Ripristina acquisti'),
           ),
         ],
