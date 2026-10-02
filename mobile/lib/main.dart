@@ -1,10 +1,16 @@
 import 'package:dio/dio.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'auth_gate.dart';
 import 'screens/paywall_screen.dart';
 
-void main() => runApp(const AstraVideoApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initializeFirebaseIfEnabled();
+  runApp(const AstraVideoApp());
+}
 
 class AstraVideoApp extends StatelessWidget {
   const AstraVideoApp({super.key});
@@ -24,7 +30,7 @@ class AstraVideoApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const MainShell(),
+      home: const AuthGate(child: MainShell()),
     );
   }
 }
@@ -38,6 +44,20 @@ class ApiService {
         ));
 
   final Dio _dio;
+
+  Future<Options> _options() async {
+    if (!firebaseEnabled) return Options();
+    final token = await FirebaseAuth.instance.currentUser?.getIdToken();
+    return Options(headers: token == null ? null : {'Authorization': 'Bearer $token'});
+  }
+
+  Future<String> uploadImage(XFile file) async {
+    final form = FormData.fromMap({
+      'file': await MultipartFile.fromFile(file.path, filename: file.name),
+    });
+    final response = await _dio.post('/v1/uploads/image', data: form, options: await _options());
+    return (response.data as Map)['url'].toString();
+  }
 
   Future<Map<String, dynamic>> createGeneration({
     required String prompt,
@@ -54,12 +74,12 @@ class ApiService {
       'resolution': resolution,
       'aspect_ratio': aspectRatio,
       if (imageUrl != null) 'image_url': imageUrl,
-    });
+    }, options: await _options());
     return Map<String, dynamic>.from(response.data as Map);
   }
 
   Future<List<Map<String, dynamic>>> getGenerations() async {
-    final response = await _dio.get('/v1/generations');
+    final response = await _dio.get('/v1/generations', options: await _options());
     return (response.data as List).map((e) => Map<String, dynamic>.from(e as Map)).toList();
   }
 }
@@ -161,8 +181,10 @@ class _CreateScreenState extends State<CreateScreen> {
       message = null;
     });
     try {
-      // Image upload to R2 will replace this local placeholder when R2 credentials are enabled.
-      final imageUrl = mode == 'image-to-video' ? 'https://example.com/input-image.jpg' : null;
+      String? imageUrl;
+      if (mode == 'image-to-video' && image != null) {
+        imageUrl = await api.uploadImage(image!);
+      }
       final result = await api.createGeneration(
         prompt: controller.text.trim(),
         mode: mode,
@@ -316,6 +338,14 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
         ),
+        if (firebaseEnabled)
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.logout),
+              title: const Text('Esci'),
+              onTap: () => FirebaseAuth.instance.signOut(),
+            ),
+          ),
         const Card(child: ListTile(leading: Icon(Icons.language), title: Text('Lingua'), trailing: Text('Italiano'))),
         const Card(child: ListTile(leading: Icon(Icons.privacy_tip_outlined), title: Text('Privacy'))),
         const Card(child: ListTile(leading: Icon(Icons.help_outline), title: Text('Supporto'))),
