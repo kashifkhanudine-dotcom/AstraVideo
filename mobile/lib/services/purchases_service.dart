@@ -27,8 +27,7 @@ class PurchasesService {
     if (!_configured) {
       throw StateError('RevenueCat non configurato');
     }
-    final result = await Purchases.purchasePackage(package);
-    return result.customerInfo;
+    return Purchases.purchasePackage(package);
   }
 
   static Future<CustomerInfo> restore() async {
