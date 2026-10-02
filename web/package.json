@@ -1,6 +1,6 @@
 {
   "name": "astravideo-web",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -9,14 +9,16 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "next": "^16.0.0",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "@ai-sdk/gateway": "4.0.61",
+    "ai": "7.0.75",
+    "next": "16.0.0",
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
   },
   "devDependencies": {
-    "@types/node": "^22.0.0",
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
-    "typescript": "^5.7.0"
+    "@types/node": "22.10.2",
+    "@types/react": "19.0.6",
+    "@types/react-dom": "19.0.3",
+    "typescript": "5.7.2"
   }
 }
