@@ -2,7 +2,7 @@ name: astravideo
 
 description: AstraVideo AI video generator
 publish_to: 'none'
-version: 0.1.0+1
+version: 0.2.0+2
 
 environment:
   sdk: '>=3.4.0 <4.0.0'
@@ -12,6 +12,8 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.8
   dio: ^5.7.0
+  image_picker: ^1.1.2
+  purchases_flutter: ^8.8.0
 
 flutter:
   uses-material-design: true
