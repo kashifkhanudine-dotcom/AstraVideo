@@ -7,6 +7,8 @@ class Settings(BaseSettings):
     require_auth: bool = False
     firebase_project_id: str = ""
 
+    database_url: str = ""
+
     replicate_api_token: str = ""
     replicate_model_version: str = ""
 
