@@ -1,4 +1,5 @@
 import { gateway } from "@ai-sdk/gateway";
+import { experimental_videoStatus } from "ai";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -14,8 +15,10 @@ export async function POST(request: Request) {
   }
 
   try {
-    const model = gateway.videoModel(MODEL_ID);
-    const status = await model.doStatus({ operation: body.operation as never });
+    const status = await experimental_videoStatus(gateway.videoModel(MODEL_ID), {
+      operation: body.operation as never,
+    });
+
     const videos = (status.videos ?? [])
       .filter((video) => video.type === "url")
       .map((video) => ({ url: video.url, mediaType: video.mediaType }));
@@ -24,7 +27,7 @@ export async function POST(request: Request) {
       ok: true,
       status: status.status,
       videos,
-      error: status.status === "failed" ? "Kling generation failed." : undefined,
+      error: status.status === "error" ? status.error : undefined,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to check generation status.";
